@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: pagebyfeel-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - pagebyfeel-redis-data:/data
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - pagebyfeel-network
+
+  # PostgreSQL
+  postgres:
+    image: postgres:17-alpine
+    container_name: pagebyfeel-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: pagebyfeeldb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pagebyfeeldb"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pagebyfeel-network
+
+volumes:
+  pagebyfeel-redis-data:
+  postgres-data:
+
+networks:
+  pagebyfeel-network:
+    driver: bridge
