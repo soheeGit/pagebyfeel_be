@@ -1,0 +1,5 @@
+  spring:
+    application:
+      name: PageByFeel_BE
+    profiles:
+      active: dev
