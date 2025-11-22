@@ -32,6 +32,20 @@ spring:
 
       leak-detection-threshold: 180000  # 3분으로 여유롭게
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 30000          # 연결 타임아웃 30초
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: 30s     # 풀 대기시간 30초
+        shutdown-timeout: 200ms
+
   security:
     oauth2:
       client:
