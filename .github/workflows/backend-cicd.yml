@@ -2,7 +2,7 @@ name: 🚀 Backend CI/CD with Docker Compose + Docker Hub + AWS EC2
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, main ]
 
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -11,7 +11,6 @@ env:
 jobs:
   test-build-deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
 
     steps:
       - name: 📥 Checkout code
