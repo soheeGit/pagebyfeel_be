@@ -1,0 +1,119 @@
+name: 🚀 Backend CI/CD with Docker Compose + Docker Hub + AWS EC2
+
+on:
+  push:
+    branches: [ develop ]
+
+env:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: 🔧 Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+
+      - name: 🔑 Grant execute permission for gradlew
+        run: chmod +x backend/gradlew
+
+      - name: 🐳 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: 🏗️ Build and push Docker image to Docker Hub
+        working-directory: ./backend
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "🔨 Building Docker image..."
+          echo "📋 Build context contents:"
+          ls -la
+          
+          docker build -t $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:$IMAGE_TAG .
+          docker build -t $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:latest .
+          
+          echo "📤 Pushing Docker image to Docker Hub..."
+          docker push $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:$IMAGE_TAG
+          docker push $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:latest
+          
+          echo "✅ Image pushed to Docker Hub successfully!"
+          echo "📍 Image URI: $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:latest"
+
+      # 배포 파일들을 AWS EC2로 복사
+      - name: 📁 Copy deployment files to AWS EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "deploy/*"
+          target: "/home/${{ secrets.EC2_USERNAME }}/pagebyfeel-backend/"
+          strip_components: 1
+
+      # AWS EC2 배포 (Docker Compose + Docker Hub + Nginx + HTTPS)
+      - name: 🚀 Deploy to AWS EC2 with Docker Compose and HTTPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            echo "🚀 Starting deployment to AWS EC2 with HTTPS..."
+            
+            # 환경변수 파일 생성 (.env)
+            cd /home/${{ secrets.EC2_USERNAME }}/pagebyfeel-backend/deploy
+            
+            cat > .env << EOF
+            DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }}
+            DOCKER_HUB_REPOSITORY=${{ secrets.DOCKER_HUB_REPOSITORY }}
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=$(echo '${{ secrets.DB_PASSWORD }}' | base64 -d)
+            frontOrigin=${{ secrets.FRONT_ORIGIN }}
+            baseUrl=${{ secrets.BASE_URL }}
+            EOF
+            
+            echo "✅ .env file created"
+            
+            echo "🔴 Stopping existing services..."
+            # 기존 서비스 중지
+            docker compose -f docker-compose.prod.yml down || true
+            
+            # 오래된 이미지 정리
+            docker image prune -f || true
+            
+            # 최신 이미지 풀
+            echo "📥 Pulling latest image from Docker Hub..."
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:latest
+            
+            # 서비스 시작
+            echo "🚀 Starting services with HTTPS..."
+            docker compose -f docker-compose.prod.yml up -d
+            
+            # 서비스 상태 확인
+            echo "📊 Checking service status..."
+            sleep 10
+            docker ps
+            
+            echo ""
+            echo "🎉 AWS EC2 HTTPS 배포가 완료되었습니다!"
+            echo "🔒 HTTPS URL: https://${{ secrets.DOMAIN_NAME }}"
+            echo "📊 Swagger UI: https://${{ secrets.DOMAIN_NAME }}/swagger-ui/index.html"
