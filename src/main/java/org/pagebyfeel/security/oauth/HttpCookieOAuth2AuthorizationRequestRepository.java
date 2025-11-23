@@ -4,6 +4,7 @@ import com.nimbusds.oauth2.sdk.util.StringUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,9 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
     public static final String OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME = "oauth2_auth_request";
     public static final String REDIRECT_URI_PARAM_COOKIE_NAME = "redirect_uri";
     private static final int COOKIE_EXPIRE_SECONDS = 180;
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
@@ -74,6 +78,16 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
+
+        boolean isProduction = "prod".equals(activeProfile);
+        cookie.setSecure(isProduction);
+
+        if (isProduction) {
+            cookie.setAttribute("SameSite", "None");
+        } else {
+            cookie.setAttribute("SameSite", "Lax");
+        }
+
         response.addCookie(cookie);
     }
 

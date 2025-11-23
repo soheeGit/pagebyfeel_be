@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pagebyfeel.dto.response.AuthResponse;
 import org.pagebyfeel.entity.user.User;
-import org.pagebyfeel.exception.CustomException;
+import org.pagebyfeel.exception.auth.AuthErrorCode;
+import org.pagebyfeel.exception.common.BusinessException;
 import org.pagebyfeel.exception.user.UserErrorCode;
 import org.pagebyfeel.repository.UserRepository;
 import org.pagebyfeel.security.JwtTokenProvider;
@@ -37,8 +38,9 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse refreshAccessToken(String refreshToken) {
+        // 변경: CustomException → BusinessException, UserErrorCode → AuthErrorCode
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(UserErrorCode.INVALID_REFRESH_TOKEN);
+            throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         Claims claims = jwtTokenProvider.getClaimsFromToken(refreshToken);
@@ -46,14 +48,14 @@ public class AuthService {
 
         String storedRefreshToken = redisService.getRefreshToken(userId);
         if (storedRefreshToken == null) {
-            throw new CustomException(UserErrorCode.TOKEN_NOT_FOUND);
+            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
         if (!storedRefreshToken.equals(refreshToken)) {
-            throw new CustomException(UserErrorCode.INVALID_REFRESH_TOKEN);
+            throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(
                 user.getUserId(),

@@ -36,6 +36,13 @@ public class JwtTokenProvider {
             UserRepository userRepository
     ) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException(
+                    "JWT secret key must be at least 256 bits (32 bytes)"
+            );
+        }
+
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenValidityInMillis = accessTokenMinutes * 60 * 1000;
         this.refreshTokenValidityInMillis = refreshTokenDays * 24 * 60 * 60 * 1000;
