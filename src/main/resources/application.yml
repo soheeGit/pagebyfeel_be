@@ -3,11 +3,12 @@ spring:
     name: PageByFeel_BE
   profiles:
     active: dev
+  web:
+    resources:
+      add-mappings: true
 
 server:
   port: 8080
-  servlet:
-    context-path: /api
 
 # OAuth2 설정
 app:
@@ -23,3 +24,8 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   default-consumes-media-type: application/json
+
+logging:
+  level:
+    org.springframework.web.servlet.resource: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: WARN
