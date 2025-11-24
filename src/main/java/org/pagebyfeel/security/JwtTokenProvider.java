@@ -7,12 +7,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.pagebyfeel.entity.user.User;
+import org.pagebyfeel.exception.auth.AuthErrorCode;
+import org.pagebyfeel.exception.common.BusinessException;
 import org.pagebyfeel.repository.UserRepository;
 import org.pagebyfeel.security.oauth.CustomOAuth2User;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -77,7 +78,7 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (JwtException e) {
-            return false;
+            throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
         }
     }
 
@@ -87,11 +88,11 @@ public class JwtTokenProvider {
         String role = claims.get("role", String.class);
 
         if (role == null || role.isEmpty()) {
-            throw new JwtException("Role claim is missing in token");
+            throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_TOKEN));
 
         CustomOAuth2User principal = new CustomOAuth2User(
                 user.getUserId(),

@@ -1,6 +1,7 @@
 package org.pagebyfeel.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.pagebyfeel.exception.auth.AuthErrorCode;
 import org.pagebyfeel.exception.common.BusinessException;
 import org.pagebyfeel.exception.common.ErrorCode;
 import org.pagebyfeel.exception.common.ErrorResponse;
@@ -121,16 +122,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         log.warn("Authentication error occurred: {}", ex.getMessage());
         
-        ErrorResponse response = new ErrorResponse(
-                "AUTHENTICATION_FAILED",
-                "인증에 실패했습니다.",
-                HttpStatus.UNAUTHORIZED.value(),
-                java.time.LocalDateTime.now()
-        );
-        
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(response);
+        throw new BusinessException(AuthErrorCode.AUTHENTICATION_FAILED);
     }
 
     /**
@@ -140,16 +132,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         log.warn("Access denied error occurred: {}", ex.getMessage());
         
-        ErrorResponse response = new ErrorResponse(
-                "ACCESS_DENIED",
-                "접근 권한이 없습니다.",
-                HttpStatus.FORBIDDEN.value(),
-                java.time.LocalDateTime.now()
-        );
-        
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(response);
+        throw new BusinessException(AuthErrorCode.ACCESS_DENIED);
     }
 
     /**
