@@ -132,7 +132,7 @@ management:
         enabled: true
   health:
     redis:
-      enabled: true # Redis 헬스 체크 활성화
+      enabled: false # Redis 헬스 체크 비활성화 (초기화 시 대기 방지)
 
 gemini:
   api:
