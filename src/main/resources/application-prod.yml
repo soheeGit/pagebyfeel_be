@@ -117,13 +117,13 @@ jwt:
 
 logging:
   level:
-    root: DEBUG
-    org.pagebyfeel: DEBUG
-    org.springframework: DEBUG
-    org.springframework.boot: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate: DEBUG
+    root: INFO
+    org.pagebyfeel: INFO
+    org.springframework: WARN
+    org.springframework.boot: WARN
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
 
 gemini:
   api:
