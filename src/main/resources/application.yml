@@ -12,7 +12,6 @@ server:
   servlet:
     context-path: /api
 
-# OAuth2 설정
 app:
   oauth2:
     authorized-redirect-uri: ${OAUTH2_REDIRECT_URI:/oauth2/redirect}
