@@ -56,7 +56,6 @@ jobs:
           echo "✅ Image pushed to Docker Hub successfully!"
           echo "📍 Image URI: $DOCKER_HUB_USERNAME/$DOCKER_HUB_REPOSITORY:latest"
 
-      # 배포 파일들을 AWS EC2로 복사 (deploy 폴더 구조 유지)
       - name: 📁 Copy deployment files to AWS EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -67,7 +66,6 @@ jobs:
           target: "/home/${{ secrets.EC2_USERNAME }}/pagebyfeel_be/"
           overwrite: true
 
-      # AWS EC2 배포 (Docker Compose + Docker Hub + Nginx + HTTPS)
       - name: 🚀 Deploy to AWS EC2 with Docker Compose and HTTPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -80,9 +78,7 @@ jobs:
             cd /home/${{ secrets.EC2_USERNAME }}/pagebyfeel_be/deploy
             
             echo "🧹 Cleaning up old environment..."
-            # 기존 .env 파일 삭제
             rm -f .env
-            # 개발용 docker-compose.yml 삭제
             rm -f docker-compose.yml
             
             # 기존 서비스 완전 중지 및 정리
@@ -115,11 +111,6 @@ jobs:
             EOF
             
             echo "✅ .env file created"
-            
-            # .env 파일 내용 검증 (민감정보 제외하고 키만 확인)
-            echo "🔍 Verifying .env file..."
-            grep "^DB_USERNAME=" .env > /dev/null && echo "  ✓ DB_USERNAME is set" || echo "  ✗ DB_USERNAME is missing"
-            grep "^DB_USER=" .env > /dev/null && echo "  ⚠️  WARNING: DB_USER found (should not exist)" || echo "  ✓ DB_USER not found (correct)"
             
             # 오래된 이미지 정리
             echo "🧹 Cleaning old images..."
