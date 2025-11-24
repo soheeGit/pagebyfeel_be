@@ -2,7 +2,7 @@ spring:
   application:
     name: PageByFeel_BE
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   web:
     resources:
       add-mappings: true
