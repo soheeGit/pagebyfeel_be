@@ -14,7 +14,7 @@ server:
 
 app:
   oauth2:
-    authorized-redirect-uri: ${OAUTH2_REDIRECT_URI:/oauth2/redirect}
+    authorized-redirect-uri: ${OAUTH2_REDIRECT_URI}
 
 springdoc:
   swagger-ui:
