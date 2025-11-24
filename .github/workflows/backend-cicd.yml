@@ -63,9 +63,10 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "deploy/*"
+          source: "deploy/docker-compose.prod.yml,deploy/nginx"
           target: "/home/${{ secrets.EC2_USERNAME }}/pagebyfeel_be/"
           strip_components: 1
+          overwrite: true
 
       # AWS EC2 배포 (Docker Compose + Docker Hub + Nginx + HTTPS)
       - name: 🚀 Deploy to AWS EC2 with Docker Compose and HTTPS
@@ -79,9 +80,11 @@ jobs:
             
             cd /home/${{ secrets.EC2_USERNAME }}/pagebyfeel_be/deploy
             
-            echo "🧹 Cleaning up old environment..."
-            # 기존 .env 파일 삭제 (혹시 남아있는 DB_USER 변수 제거)
+            echo "🧹 Cleaning up old files..."
+            # 기존 파일 완전 삭제
             rm -f .env
+            rm -f docker-compose.yml  # 개발용 파일 삭제
+            rm -f docker-compose.prod.yml  # 기존 파일 삭제하여 새 버전 받도록
             
             # 기존 서비스 완전 중지 및 정리
             echo "🔴 Stopping existing services..."
