@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${SPRINGDOC_SWAGGER_UI_SERVERS_0_URL:http://localhost:8080}")
+    @Value("${SPRINGDOC_SWAGGER_UI_SERVERS_0_URL:http://localhost:8080/api}")
     private String serverUrl;
 
     @Bean
