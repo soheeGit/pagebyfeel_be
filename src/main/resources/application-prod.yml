@@ -117,8 +117,13 @@ jwt:
 
 logging:
   level:
-    root: WARN
-    store.lastdance: WARN
+    root: DEBUG
+    org.pagebyfeel: DEBUG
+    org.springframework: DEBUG
+    org.springframework.boot: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: DEBUG
 
 gemini:
   api:
